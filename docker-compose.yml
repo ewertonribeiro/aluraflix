@@ -1,0 +1,66 @@
+version: "3.9"
+services:
+  postgresdb:
+    image: postgres
+    container_name: postgresdb
+    restart: always
+    expose:
+      - 5432
+    ports:
+      - 5431:5432
+    networks:
+      - compose-bridge
+    environment:
+      POSTGRES_USER: ewerton
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: aluraflix_db
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+
+  node_app:
+    image: aluraflix
+    container_name: aluraflix
+    restart: always
+    links:
+      - postgresdb
+      - users
+    environment:
+      POSTGRES_DB: aluraflix_db
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ewerton
+      HOST: postgresdb
+    expose:
+      - 5000
+    ports:
+      - 5000:5000
+    depends_on:
+      - postgresdb
+    networks:
+      - compose-bridge
+    volumes:
+      - .:/app
+
+  users:
+    image: user-service
+    container_name: user-service
+    restart: always
+    expose:
+      - 5000
+    ports:
+      - 5001:5000
+    networks:
+      - compose-bridge
+    environment:
+      POSTGRES_DB: aluraflix_db
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ewerton
+      HOST: postgresdb
+    volumes:
+      - ~/projetos/user-microservice:/app
+
+volumes:
+  postgresdata: 
+
+networks:
+  compose-bridge:
+    driver: bridge
